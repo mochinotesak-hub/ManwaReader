@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    
+    <title>ManwaReader — Local Webtoon Hub</title>
+    <meta name="description" content="Personal offline webtoon and manhwa reader" />
+    <meta name="theme-color" content="#0b0c10" />
+    
+    <link rel="icon" type="image/svg+xml" href="/icon-512.svg" />
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+    <script>
+      // Clean up any previously registered service workers
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.getRegistrations().then((registrations) => {
+          for (let reg of registrations) {
+            reg.unregister();
+          }
+        });
+      }
+    </script>
+  </body>
+</html>
