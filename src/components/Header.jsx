@@ -37,7 +37,7 @@ export default function Header({
         {/* Brand */}
         <div 
           className="flex items-center gap-2.5 cursor-pointer group active:scale-95 transition-transform shrink-0" 
-          onClick={onBackToLibrary}
+          onClick={selectedManhwa ? undefined : onBackToLibrary}
         >
           <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-tr from-rose-600 to-rose-500 shadow-md shadow-rose-500/25 ring-1 ring-white/20 shrink-0">
             <BookOpen size={20} className="text-white" />

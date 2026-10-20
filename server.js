@@ -15,6 +15,42 @@ const LIBRARY_DIR = path.resolve(__dirname, 'library');
 app.use(cors());
 app.use(express.json());
 
+// Performance & Telemetry Logger
+const LOG_FILE = path.join(__dirname, 'reader_performance.log');
+
+app.use((req, res, next) => {
+  const start = process.hrtime();
+  const clientIp = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+
+  res.on('finish', () => {
+    const diff = process.hrtime(start);
+    const durationMs = (diff[0] * 1e3 + diff[1] * 1e-6).toFixed(2);
+    const contentLength = res.getHeader('content-length') || 0;
+    const logLine = `[${new Date().toISOString()}] ${req.method} ${req.originalUrl} | Status: ${res.statusCode} | Time: ${durationMs}ms | Size: ${(contentLength / 1024).toFixed(1)} KB | IP: ${clientIp}\n`;
+
+    // Highlight slow requests (>300ms) or errors in stdout
+    if (durationMs > 300 || res.statusCode >= 400) {
+      console.warn(`⚠️ [SLOW/ERR] ${logLine.trim()}`);
+    } else {
+      console.log(`⚡ [METRIC] ${logLine.trim()}`);
+    }
+
+    // Persist to analytics log
+    fs.appendFile(LOG_FILE, logLine, () => {});
+  });
+
+  next();
+});
+
+// Endpoint for frontend telemetry logs (image load times, decode errors)
+app.post('/api/telemetry', (req, res) => {
+  const { event, details, durationMs, page, manhwa, chapter } = req.body;
+  const line = `[CLIENT-METRIC] ${new Date().toISOString()} | Event: ${event} | ${manhwa}/${chapter} p${page} | ${durationMs || 0}ms | ${JSON.stringify(details || {})}\n`;
+  console.log(`📱 ${line.trim()}`);
+  fs.appendFile(LOG_FILE, line, () => {});
+  res.json({ ok: true });
+});
+
 const isImage = (file) => /\.(jpe?g|png|webp|gif|bmp)$/i.test(file);
 
 // Get all manhwas joined with SQLite metadata
@@ -197,11 +233,25 @@ app.get('/api/manhwa/:id', (req, res) => {
           return a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' });
         });
 
+        const imageDetails = images.map(img => {
+          let size = 0;
+          try {
+            size = fs.statSync(path.join(chapterPath, img)).size;
+          } catch (e) {}
+          return {
+            name: img,
+            size: size,
+            sizeFormatted: size > 1048576 ? `${(size / 1048576).toFixed(1)} MB` : `${Math.round(size / 1024)} KB`,
+            url: `/api/image/${encodeURIComponent(manhwaId)}/${encodeURIComponent(entry.name)}/${encodeURIComponent(img)}`
+          };
+        });
+
         chapters.push({
           number: chapterNum,
           folder: entry.name,
           imageCount: images.length,
-          images: images.map(img => `/api/image/${encodeURIComponent(manhwaId)}/${encodeURIComponent(entry.name)}/${encodeURIComponent(img)}`)
+          images: imageDetails.map(d => d.url),
+          imageMeta: imageDetails
         });
       }
     }

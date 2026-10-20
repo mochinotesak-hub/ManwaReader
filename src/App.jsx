@@ -127,7 +127,7 @@ export default function App() {
     if (manhwaDetails && currentChapterIndex < manhwaDetails.chapters.length - 1) {
       const nextIdx = currentChapterIndex + 1;
       setCurrentChapterIndex(nextIdx);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      window.scrollTo({ top: 0, behavior: 'instant' });
       
       const ch = manhwaDetails.chapters[nextIdx];
       fetch(`${API_BASE}/manhwa/${selectedManhwa.id}/progress`, {
@@ -142,7 +142,7 @@ export default function App() {
     if (currentChapterIndex > 0) {
       const prevIdx = currentChapterIndex - 1;
       setCurrentChapterIndex(prevIdx);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      window.scrollTo({ top: 0, behavior: 'instant' });
 
       const ch = manhwaDetails.chapters[prevIdx];
       fetch(`${API_BASE}/manhwa/${selectedManhwa.id}/progress`, {
