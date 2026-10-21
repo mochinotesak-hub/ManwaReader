@@ -49,6 +49,8 @@ npm run dev
 
 Open your browser at: **[http://localhost:7890](http://localhost:7890)**
 
+To stop both background services at any time, simply double click `stop.bat`.
+
 ---
 
 ## 📂 Library Structure
